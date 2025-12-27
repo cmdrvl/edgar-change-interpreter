@@ -1,70 +1,236 @@
 # Edgar Change Interpreter
 
-Edgar Change Interpreter is a Claude Skill implemented using the official Skills format. It helps Claude identify material changes, silent risks, and interpretation traps in SEC filings (10-K, 10-Q, 8-K) using evidence-based, structured outputs.
+A Claude Skill that helps you analyze SEC filings (10-K, 10-Q, 8-K) for material changes, silent risks, and interpretation traps. Think of it as giving Claude a specialized lens for reading financial disclosures.
 
-## Install locally
-Copy the skill folder into your Claude skills directory:
+---
+
+## What Does This Do?
+
+When you're reviewing SEC filings, this skill helps Claude:
+- **Spot material changes** between current and prior filings
+- **Flag silent risks** — things that disappeared or changed without explanation
+- **Quote evidence** directly from the filing text
+- **Be explicit about uncertainty** — no hallucinated conclusions
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js v20 or higher** (see [Appendix A](#appendix-a-installing-nodejs-with-nvm) if you don't have it)
+- **Claude CLI** with MCP support (see [Appendix B](#appendix-b-setting-up-claude-cli))
+
+### Step 1: Install the Claude Skill
+
+Copy the skill folder to your Claude skills directory:
 
 ```bash
+# Create the skills directory if it doesn't exist
 mkdir -p ~/.claude/skills
+
+# Copy the skill
 cp -R skills/edgar-change-interpreter ~/.claude/skills/
 ```
 
-## How Claude decides to load it
-Claude loads this skill when the user provides SEC filing text and asks about changes, risks, or interpretation. The skill’s system instructions guide change-focused analysis, evidence quotes, and explicit uncertainty.
+That's it! Claude will now automatically use this skill when you ask about SEC filings.
 
-## Minimal usage example
-Provide a filing excerpt and request a change-focused review:
+### Step 2: Set Up the MCP Server (Optional but Recommended)
 
-```text
-Analyze the material changes and silent risks in this 10-Q excerpt:
+The MCP server fetches SEC filings for you automatically — no more copy-pasting from the SEC website.
 
-[PASTE FILING TEXT]
+```bash
+# Navigate to the server directory
+cd mcp/edgar-server
+
+# Install dependencies
+npm install
+
+# Create your environment file
+cp .env.example .env
 ```
 
-If you also have a prior filing, include it in the user input template at:
-`skills/edgar-change-interpreter/templates/user_input_template.md`.
+Edit the `.env` file with your information (the SEC requires a user-agent for API access):
 
-## Optional MCP server (EDGAR helper)
-This repo includes an optional MCP server that can resolve tickers, fetch the latest filings, download EDGAR documents, and normalize them into plain text suitable for the Claude Skill. The skill itself still works without the MCP server.
-
-### Run locally
 ```bash
-cd mcp/edgar-server
-npm install
+SEC_USER_AGENT_NAME="Your Name or Company"
+SEC_USER_AGENT_EMAIL="your@email.com"
+SEC_MAX_RPS=2
+```
+
+Build and start the server:
+
+```bash
 npm run build
 npm start
 ```
 
-Environment configuration (create a `.env` based on `.env.example`):
-```bash
-SEC_USER_AGENT_NAME="CMD+RVL Edgar Skill"
-SEC_USER_AGENT_EMAIL="you@example.com"
-SEC_MAX_RPS=2
+When the server starts, it will print a command you can copy-paste to register it with Claude:
+
+```
+[edgar-mcp-server] Started successfully!
+
+To add this server to Claude CLI, run:
+
+claude mcp add-json edgar '{"type":"stdio","command":"node","args":["/path/to/dist/index.js"],"env":{...}}'
 ```
 
-### Example MCP tool calls
-Resolve a ticker to CIK:
-```json
-{"tool":"edgar.resolve_company","input":{"ticker_or_cik":"AAPL"}}
+Copy that command and run it in a new terminal to register the server.
+
+---
+
+## Usage Examples
+
+### Without MCP Server (Manual)
+
+Just paste filing text directly into Claude:
+
+```text
+Analyze the material changes and silent risks in this 10-Q excerpt:
+
+[PASTE FILING TEXT HERE]
 ```
 
-Fetch the latest 10-K metadata:
-```json
-{"tool":"edgar.latest_filing","input":{"cik":"0000320193","form_type":"10-K"}}
+### With MCP Server (Automatic)
+
+Ask Claude to fetch the filing for you:
+
+```text
+Use the edgar tools to fetch Apple's latest 10-K and analyze it for material changes.
 ```
 
-Fetch and normalize the filing text:
-```json
-{"tool":"edgar.fetch_filing_text","input":{"primary_doc_url":"https://www.sec.gov/Archives/edgar/data/320193/000032019323000106/aapl-20230930x10k.htm"}}
+Or be more specific:
+
+```text
+Fetch AAPL's latest 10-K with the prior period included, then analyze the changes in their risk factors.
 ```
 
-### Example flow: fetch latest 10-K and paste into the skill
-1. Call `edgar.get_and_prepare_for_skill`:
-   ```json
-   {"tool":"edgar.get_and_prepare_for_skill","input":{"ticker_or_cik":"AAPL","form_type":"10-K","include_prior":true}}
-   ```
-2. Copy the `skill_prompt_markdown` field into the Claude conversation using the skill.
+### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `edgar.resolve_company` | Convert a ticker (AAPL) to a CIK number |
+| `edgar.latest_filing` | Get metadata for the most recent filing |
+| `edgar.fetch_filing_text` | Download and convert a filing to plain text |
+| `edgar.get_and_prepare_for_skill` | All-in-one: fetch filing(s) and prepare for analysis |
+
+---
+
+## Troubleshooting
+
+### "File content exceeds maximum allowed size"
+
+The filing text was too large. Try asking for a smaller excerpt or specific sections:
+
+```text
+Fetch AAPL's 10-K but focus only on the Risk Factors section.
+```
+
+### MCP server not responding
+
+1. Make sure the server is running (`npm start` in the `mcp/edgar-server` directory)
+2. Check that you registered it with Claude (`claude mcp list` should show "edgar")
+3. Look at the server output for error messages
+
+---
 
 ## Disclaimer
-This skill provides decision support only and does not offer investment advice.
+
+This skill provides decision support only and does not offer investment advice. Always verify findings against the original SEC filings.
+
+---
+
+## Appendix A: Installing Node.js with nvm
+
+[nvm](https://github.com/nvm-sh/nvm) (Node Version Manager) is the easiest way to install and manage Node.js versions.
+
+### macOS / Linux
+
+Open Terminal and run:
+
+```bash
+# Install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+# Restart your terminal, then install Node.js
+nvm install 20
+nvm use 20
+
+# Verify it worked
+node --version  # Should show v20.x.x
+```
+
+### Windows
+
+Use [nvm-windows](https://github.com/coreybutler/nvm-windows):
+
+1. Download the installer from the [releases page](https://github.com/coreybutler/nvm-windows/releases)
+2. Run the installer
+3. Open a new Command Prompt and run:
+
+```bash
+nvm install 20
+nvm use 20
+node --version
+```
+
+---
+
+## Appendix B: Setting Up Claude CLI
+
+The Claude CLI lets you use Claude from your terminal with MCP tool support.
+
+### Install Claude CLI
+
+```bash
+# macOS (using Homebrew)
+brew install claude
+
+# Or using npm (any platform)
+npm install -g @anthropic-ai/claude-cli
+```
+
+### First-Time Setup
+
+```bash
+# Authenticate with your Anthropic account
+claude login
+
+# Verify it's working
+claude --version
+```
+
+### Managing MCP Servers
+
+```bash
+# List registered MCP servers
+claude mcp list
+
+# Add a server (the edgar server prints this command for you)
+claude mcp add-json edgar '{"type":"stdio","command":"node","args":["/path/to/index.js"]}'
+
+# Remove a server
+claude mcp remove edgar
+
+# Test a server
+claude mcp get edgar
+```
+
+### Using Claude with MCP Tools
+
+Once the edgar server is registered, just start a conversation:
+
+```bash
+claude
+
+# Then type your request:
+> Fetch Apple's latest 10-K and summarize the key risk factors.
+```
+
+Claude will automatically use the edgar tools when needed.
+
+---
+
+<p align="center">
+  <sub>Built by <a href="https://cmdrvl.com">cmd+rvl</a></sub>
+</p>
