@@ -1,4 +1,5 @@
-import { decode } from "he";
+import he from "he";
+const { decode } = he;
 
 const BLOCK_TAGS = [
   "p",
