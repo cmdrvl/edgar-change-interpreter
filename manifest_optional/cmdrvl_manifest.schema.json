@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Decision Evidence Pack Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dataset_id",
+    "title",
+    "domain",
+    "decision_contexts",
+    "time_axes",
+    "refresh_cadence",
+    "lineage",
+    "units",
+    "known_failure_modes",
+    "recommended_overlays",
+    "agent_affordances"
+  ],
+  "properties": {
+    "dataset_id": {
+      "type": "string",
+      "description": "Stable identifier for the evidence pack."
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable name for the pack."
+    },
+    "domain": {
+      "type": "string",
+      "description": "Domain focus, e.g., SEC filings, credit, supply chain."
+    },
+    "decision_contexts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Decisions this pack is intended to support."
+    },
+    "time_axes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Relevant time dimensions, e.g., quarterly, annual, event-driven."
+    },
+    "refresh_cadence": {
+      "type": "string",
+      "description": "Update frequency or event trigger."
+    },
+    "lineage": {
+      "type": "string",
+      "description": "Source and transformation notes."
+    },
+    "units": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Key measurement units used in the data."
+    },
+    "known_failure_modes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Known gaps or failure cases."
+    },
+    "recommended_overlays": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Complementary data sources to cross-check."
+    },
+    "agent_affordances": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Suggested agent behaviors or tools to apply."
+    }
+  }
+}
