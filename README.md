@@ -1,6 +1,30 @@
 # Edgar Change Interpreter
 
-A Claude Skill that helps you analyze SEC filings (10-K, 10-Q, 8-K) for material changes, silent risks, and interpretation traps. Think of it as giving Claude a specialized lens for reading financial disclosures.
+A Claude Skill for interpreting material change, silent risk, and disclosure traps in SEC filings. It focuses on what changed (and what disappeared) across 10-K, 10-Q, and 8-K filings so you can review deltas without missing subtle shifts.
+
+- **What this focuses on:** material changes, omitted risks, and explicit evidence from filings
+- **What this deliberately avoids:** generic summaries and trade advice
+
+---
+
+## Why change interpretation (not summaries)?
+
+Summaries describe what exists in a single filing. Decisions hinge on what changed between periods, what quietly disappeared, and how risk language shifted. This skill is built to surface those deltas and make uncertainty explicit.
+
+---
+
+## Quickstart
+
+```bash
+mkdir -p ~/.claude/skills
+cp -R skills/edgar-change-interpreter ~/.claude/skills/
+```
+
+Restart Claude, then ask:
+
+```text
+Compare the latest 10-K vs. prior year for material changes and silent risks in the Risk Factors section.
+```
 
 ---
 
@@ -134,6 +158,18 @@ Fetch AAPL's 10-K but focus only on the Risk Factors section.
 
 ---
 
+## About CMD+RVL
+
+CMD+RVL builds decision-grade data, signals, and evidence for financial analysis. This skill is an open, standalone component of that work, designed to make interpretation and uncertainty explicit.
+
+---
+
+## Extending this skill
+
+You can optionally pair this with historical filing packs or MCP/API fetchers for easier sourcing. It always works standalone with pasted text when you want a minimal, offline workflow.
+
+---
+
 ## Disclaimer
 
 This skill provides decision support only and does not offer investment advice. Always verify findings against the original SEC filings.
@@ -228,9 +264,3 @@ claude
 ```
 
 Claude will automatically use the edgar tools when needed.
-
----
-
-<p align="center">
-  <sub>Built by <a href="https://cmdrvl.com">cmd+rvl</a></sub>
-</p>
