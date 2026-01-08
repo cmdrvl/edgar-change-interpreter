@@ -33,11 +33,11 @@ mkdir -p ~/.claude/skills
 cp -R skills/edgar-change-interpreter ~/.claude/skills/
 ```
 
-That's it! Claude will now automatically use this skill when you ask about SEC filings.
+The skill is now installed. Continue to Step 2 to set up automatic filing retrieval, or skip to [Usage Examples](#usage-examples) to use the skill by pasting filing text manually.
 
-### Step 2: Set Up the MCP Server (Optional but Recommended)
+### Step 2: Set Up the MCP Server (Recommended)
 
-The MCP server fetches SEC filings for you automatically — no more copy-pasting from the SEC website.
+The MCP server fetches SEC filings for you automatically — no more copy-pasting from the SEC website. Skip to [Usage Examples](#usage-examples) if you want to use the skill manually without the server.
 
 ```bash
 # Navigate to the server directory
@@ -58,14 +58,19 @@ SEC_USER_AGENT_EMAIL="your@email.com"
 SEC_MAX_RPS=2
 ```
 
-Build and start the server:
+Build the server:
 
 ```bash
 npm run build
+```
+
+Run it once to get your registration command:
+
+```bash
 npm start
 ```
 
-When the server starts, it will print a command you can copy-paste to register it with Claude:
+The server will print something like this:
 
 ```
 [edgar-mcp-server] Started successfully!
@@ -75,7 +80,39 @@ To add this server to Claude CLI, run:
 claude mcp add-json edgar '{"type":"stdio","command":"node","args":["/path/to/dist/index.js"],"env":{...}}'
 ```
 
-Copy that command and run it in a new terminal to register the server.
+**Important:** Stop the server (Ctrl+C), then copy and run that `claude mcp add-json ...` command. Claude Code manages starting the server automatically — you don't need to keep it running manually.
+
+### Step 3: Start Claude Code
+
+Now start Claude Code:
+
+```bash
+claude
+```
+
+That's it! Claude will automatically start the MCP server in the background when needed.
+
+### Step 4: Verify Everything Works
+
+Run these quick checks to confirm your setup:
+
+```bash
+# Check that the MCP server is registered
+claude mcp list
+# Should show "edgar" in the list
+
+# Check that the skill is installed
+ls ~/.claude/skills/edgar-change-interpreter
+# Should show the skill files
+```
+
+**Quick test prompt** — paste this into Claude Code to confirm both the skill and MCP server are working:
+
+```text
+Use the edgar tools to resolve the company "AAPL" and tell me their CIK number.
+```
+
+If you see a CIK number (like 0000320193), you're all set.
 
 ---
 
@@ -118,6 +155,19 @@ Fetch AAPL's latest 10-K with the prior period included, then analyze the change
 
 ## Troubleshooting
 
+### Skill not being used
+
+If Claude analyzes a filing without the structured output format (Material Changes, Silent Risks, etc.), the skill might not be installed correctly.
+
+**Check the skill is installed:**
+```bash
+ls ~/.claude/skills/edgar-change-interpreter/skill.md
+```
+
+If the file doesn't exist, re-run Step 1 to copy the skill folder.
+
+**Tip:** You can explicitly invoke the skill by typing `/edgar-change-interpreter` in Claude Code, or by mentioning "use the edgar change interpreter skill" in your prompt.
+
 ### "File content exceeds maximum allowed size"
 
 The filing text was too large. Try asking for a smaller excerpt or specific sections:
@@ -128,9 +178,9 @@ Fetch AAPL's 10-K but focus only on the Risk Factors section.
 
 ### MCP server not responding
 
-1. Make sure the server is running (`npm start` in the `mcp/edgar-server` directory)
-2. Check that you registered it with Claude (`claude mcp list` should show "edgar")
-3. Look at the server output for error messages
+1. Check that you registered it with Claude (`claude mcp list` should show "edgar")
+2. Try removing and re-adding it: `claude mcp remove edgar`, then run the add command again
+3. Check your `.env` file has valid SEC_USER_AGENT values
 
 ---
 
