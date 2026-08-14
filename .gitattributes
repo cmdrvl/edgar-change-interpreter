@@ -1,0 +1,4 @@
+# Beads issue log is append-only JSONL: union merge keeps both sides
+# instead of conflicting (or, as the old bd driver did, silently dropping one).
+# br sync --import-only reconciles by id afterwards.
+.beads/issues.jsonl merge=union
