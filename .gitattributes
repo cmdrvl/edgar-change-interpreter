@@ -1,16 +1,5 @@
-# .beads/issues.jsonl is a FULL-STATE export sorted by id -- NOT append-only.
-# Existing lines are modified in place, so this file is NOT safe to merge naively.
-#
-# union keeps both sides instead of conflicting (the old bd driver silently
-# dropped one), but union NEVER CONFLICTS -- it concatenates. When the two sides
-# differ on every line (source_repo serialises as null on one machine and "." on
-# another) the whole file is one hunk and union DOUBLES IT. edgar-elt went
-# 528 -> 1056 rows this way on 2026-08-14.
-#
-# The doubling is only safe because the post-merge / post-rewrite hooks import
-# AND re-export afterwards, and pre-commit hard-fails on duplicate ids:
-#     br sync --import-only && br sync --flush-only --force
-# Plain --flush-only NO-OPS when no issues are dirty, which is why it must be
-# --force there. Install the hooks with cmdrvl-cli/scripts/install-beads-hooks.sh.
-# Background and the proper fix: cmdrvl-cli br-1zy4.
-.beads/issues.jsonl merge=union
+# .beads/issues.jsonl is a FULL-STATE export sorted by id, not append-only.
+# Existing lines are modified in place. Do not set merge=union: union silently
+# concatenates conflicting rewrites and has doubled whole Beads exports in real
+# repos. Default git conflicts are loud and safer until Beads has a semantic
+# merge driver. See cmdrvl-cli br-1zy4 / br-1rs1.
