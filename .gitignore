@@ -5,6 +5,7 @@ venv/
 .env
 node_modules/
 mcp/edgar-server/dist/
+mcp/edgar-server/.test-dist/
 mcp/edgar-server/.cache/
 
 # br writes a timestamped backup here on every --force flush (see the beads

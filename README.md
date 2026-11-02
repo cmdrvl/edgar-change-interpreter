@@ -88,6 +88,17 @@ Build the server:
 npm run build
 ```
 
+Run the tests before connecting the server:
+
+```bash
+npm test
+```
+
+The test command strictly type-checks and compiles the source and tests, then
+runs the emitted JavaScript with Node's test runner. It does not depend on an
+experimental runtime TypeScript loader. Production output remains in `dist/`;
+test output is kept separately in `.test-dist/` and is excluded from packages.
+
 Run it once to get your registration command:
 
 ```bash
